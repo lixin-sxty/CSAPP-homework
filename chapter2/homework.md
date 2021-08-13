@@ -83,3 +83,63 @@ int odd_ones(unsigned x){
     return x & 1;
 }
 ```
+* 2.66<br>
+```c++
+/*Generate mask indicating leftmost 1 in x. Assume w=32.
+For example, 0xFF00->0x8000, and 0x6600->0x4000.If x=0, return 0.*/
+int leftmost_one(unsigned x){
+    x |= (x >> 1); //将最左的1向右扩展1位，下同
+    x |= (x >> 2);
+    x |= (x >> 4);
+    x |= (x >> 8);
+    x |= (x >> 16); // 此时x应为···000111···形式，即最左侧1之后全为1
+    return x ^ (x >> 1);
+}
+```
+* 2.67<br>
+A:32位机器上不能左移32位<br>
+B:令beyond_msb = 2<<31<br>
+C:a = 1<<15; b = a<<15; set_msb = b<<1; beyond_msb = b<<2;
+* 2.68<br>
+```c++
+/*Mask with least signficant n bite set to 1
+Example: n=6->0x3F, n=17->0x1FFFF. Assume 1<=n<=w
+Notice n=w*/
+int lower_one_mask(int n){
+    return (2 << (n - 1)) - 1;
+}
+```
+* 2.68<br>
+```c++
+/*Mask with least signficant n bite set to 1
+Example: n=6->0x3F, n=17->0x1FFFF. Assume 1<=n<=w
+Notice n=w*/
+int lower_one_mask(int n){
+    return (2 << (n - 1)) - 1;
+}
+```
+* 2.69<br>
+```c++
+/*Do rotating left shift. Assume 0<=n<w
+Example when x = 0x12345678 and w=32:
+   n=4->0x23456781, n=20->0x67812345*/
+int rotate_left(unsigned x, int n){
+    unsigned left = x << n;
+    unsigned right = x >> (sizeof(int) * 8 - n - 1) >> 1;
+    return left | right;
+}
+```
+* 2.70<br>
+```c++
+/*Return 1 when x can be represented as an n-bit,
+2's-complement number; 0 otherwise. Assume 1<=n<w*/
+int fits_bits(int x, int n){
+    // 2's-complement就是补码，n为补码表示范围为-2^(n-1)~2^(n-1)-1
+    // 若能表示则x的右起第n-1位是符号位，符号位与其左侧的数应为全0(正数)或全1(负数)
+    // 因此先右移n-1位，结果应为全0或全1
+    x >>= (n - 1);
+    return !x || !(~x);
+}
+```
+
+
