@@ -36,3 +36,50 @@ int int_shifts_are_arithmetic()
     return !~(a >> (sizeof(int) << 3 - 1));
 }
 ```
+* 2.63<br>
+```c++
+unsigned srl(unsigned x, int k)
+{
+    unsigned xsra = (int)x >> k;
+    // ~0得到全1位模式，左移(int位数-k)位只保留左侧k位为1，再取反得到左侧k位为0的mask
+    unsigned mask = ~(~0 << (sizeof(int) * 8 - k));
+    // 无符号数逻辑右移左侧补0，与mask进行与操作将左侧k位置0
+    return xsra & mask;
+}
+
+int sra(int x, int k)
+{
+    // 实质是将符号位向左填充，方法是取反加1
+    // 对于00000，取反加1由于溢出得到00000
+    // 对于00001，取反加1得到11111
+    int xsrl = (unsigned)x >> k;
+    // 通过mask将xsrl分为两部分，符号位及其左侧需要取反加1
+    // 右侧保持原样，最后将二者拼接得到正确结果
+    int mask = ~0 << (sizeof(int) * 8 - k - 1);
+    int left = ~(xsrl & mask) + 1;
+    int right = xsrl & ~mask;
+    return left | right;
+}
+```
+* 2.64<br>
+```c++
+/* Return 1 when any odd bit of x equals 1;
+0 otherwise. Assume w=32 */
+int any_odd_one(unsigned x){
+    return !!(x & 0xAAAAAAAA);
+}
+```
+* 2.65<br>
+```c++
+/*Return 1 when x contains an odd number of 1s;
+0 otherwise. Assume w=32 */
+int odd_ones(unsigned x){
+    // 异或操作可以压缩奇偶性信息，如果有偶数个1则每一位进行异或操作结果为0. 折半减少操作次数
+    x ^= (x >> 16);// 将32位奇偶性压缩到右侧16位，下同
+    x ^= (x >> 8);
+    x ^= (x >> 4);
+    x ^= (x >> 2);
+    x ^= (x >> 1);
+    return x & 1;
+}
+```
