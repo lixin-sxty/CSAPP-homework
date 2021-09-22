@@ -258,3 +258,60 @@ int mul3div4(int x) {
   return divide_power2(x, 2);
 }
 ```
+* 2.80<br>
+参考CSAPP-3e-Solutions<br>
+x先除以4后乘3，结果不会溢出。但右移2位会导致低2位数据丢失，因此低2位需要单独考虑<br>
+前30位不存在溢出问题，只要将计算结果与后2位计算结果相加即可
+```c++
+int threefourths(int x) {
+  // Get higher 30 bits as h, 2 lower bits as l
+  int h = x & ~0x3;
+  int l = x & 0x3;
+  // Get symbol bit
+  int is_neg = x & INT32_MIN;
+  // l = l*3
+  l = (l << 1) + l;
+  // If x is negetive, l need extra operation to round to zero
+  // l + (1 << 2) - 1
+  (is_neg && (l += 3));
+  l >>= 2;
+  // h = h/4*3
+  h >>= 2;
+  h = (h << 1) + h;
+
+  return l + h;
+}
+```
+* 2.81<br>
+```c++
+A: -1 << k;
+B: (-1 << j) ^ (-1 << k)
+```
+* 2.82<br>
+A:x=INT_MIN,y=0<br>
+B:True<br>
+C:True<br>
+D:True<br>
+E:True<br>
+* 2.83<br>
+A:n=Y/(2^k-1)<br>
+B:<br>
+a:5/7<br>
+b:2/5<br>
+c:19/63<br>
+* 2.84<br>
+```c++
+int float_le(float x, float y) {
+  // f2u is a function that convert float to unsigned
+  unsigned ux = f2u(x);
+  unsigned uy = f2u(y);
+  // Get the sign bits
+  unsigned sx = ux >> 31;
+  unsigned sy = uy >> 31;
+  // Given an expression using only ux, uy, sx and sy
+  return (ux << 1 == 0 && uy << 1 == 0) ||  // x=0 y=0 return true
+         (sx && !sy) ||                     // x<0 y>=0 return true
+         (sx && sy && ux >= uy) ||          // x>=0 y>=0 return ux>=uy
+         (!sx && !sy && ux <= uy);          // x<0 y<0 return ux<=uy
+}
+```
