@@ -315,3 +315,296 @@ int float_le(float x, float y) {
          (!sx && !sy && ux <= uy);          // x<0 y<0 return ux<=uy
 }
 ```
+* 2.85<br>
+$$
+V=(-1)^s\times M\times 2^E
+$$
+其中V为表示的小数，s为符号位，由浮点数第一位表示，0正1负；E为阶码，由中间的k位二进制码组成的e阶码部分表示；M为尾数，是一个二进制小数，由最后n位二进制码组成的小数f表示。它们具有以下关系：
+1. 规格化数：e不全为1或0
+   1. M=frac+1
+   2. E=e-bias
+2. 非规格化数：e全为0
+   1. M=frac
+   2. E=1-bias
+   3. 位模式为全0的浮点数表示+0，而只有符号位为1的浮点数表示-0
+3. 特殊值：e全为1<br>
+   当小数域全为0时，根据符号为不同分别表示+∞和-∞；当小数域为非零时， 表示"NaN"<br>
+
+bias = 2^(k-1)-1<br>
+| 描述               | V          | M         | E      | f         | e             | bit                |
+| ------------------ | ---------- | --------- | ------ | --------- | ------------- | ------------------ |
+| 7.0                | 7.0        | 0b1.11    | 2      | 0b0.11    | 2^(k-1)+1     | 0 10···01 110···0  |
+| 最大奇整数         | 2^(n+1)-1  | 0b1.1···1 | n      | 0b0.1···1 | n+bias        | 0 n+bias 111···111 |
+| 最小规格化数       | 2^(1-bias) | 0b1.0     | 1-bias | 0b0.0     | 1             | 0 1-bias 0···0     |
+| 最小规格化数的倒数 | 2^(bias-1) | 0b1.0     | bias-1 | 0b0.0     | 2bias-1=2^k-3 | 0 1···101 00···00  |
+* 2.86<br>
+扩展浮点精度共80位，1个符号位，15个阶码位，1个整数位，63个小数位<br>
+bias = 2^14-1<br>
+
+| 描述               | 位表示            | 十进制数值            |
+| ------------------ | ----------------- | --------------------- |
+| 最小的正非规格化数 | 0 0···0 0 0···01  | $2^{-16445}$          |
+| 最小的正规格化数   | 0 0···01 1 0···00 | $2^{-16382}$          |
+| 最大的规格化数     | 0 1···10 1 1···1  | $2^{16384}-2^{16320}$ |
+
+* 2.87<br>
+半精度浮点数：1个符号位，5个阶码位，10个小数位，bias=15
+
+| 描述                   | Hex  | M                   | E   | V                     | D               |
+| ---------------------- | ---- | ------------------- | --- | --------------------- | --------------- |
+| -0                     | 8000 | 0                   | -14 | -0                    | -0.0            |
+| 最小的大于2的值        | 4001 | $1\frac{1}{1024}$   | 1   | $2\frac{1}{512}$      | 2.001953125     |
+| 512                    | 6000 | 1                   | 9   | 512                   | 512.0           |
+| 最大的非规格化数       | 03FF | $\frac{1023}{1024}$ | -14 | $\frac{1023}{2^{24}}$ | 0.0000609755516 |
+| -∞                     | FC00 | ——                  | ——  | -∞                    | -∞              |
+| 十六进制表示为3BB0的数 | 3BB0 | $1\frac{59}{64}$    | -1  | $\frac{123}{128}$     | 0.9609375       |
+* 2.88<br>
+左侧为格式A：1+5（阶码）+3（小数）,bias=15<br>
+右侧为格式B：1+4（阶码）+4（小数）,bias=7<br>
+
+| 位          | 值                  | 位          | 值                  |
+| ----------- | ------------------- | ----------- | ------------------- |
+| 1 01110 001 | $\frac{-9}{16}$     | 1 0110 0010 | $\frac{-9}{16}$     |
+| 0 10110 101 | 208                 | 0 1110 1010 | 208                 |
+| 1 00111 110 | $\frac{-7}{2^{10}}$ | 1 0000 0111 | $\frac{-7}{2^{10}}$ |
+| 0 00000 101 | $\frac{5}{2^{17}}$  | 0 0000 0001 | $\frac{1}{2^{10}}$  |
+| 1 11011 000 | -4096               | 1 1110 1111 | -248                |
+| 0 11000 100 | 768                 | 0 1111 0000 | ∞                   |
+* 2.89<br>
+A:true.32位整型可以被double精确表示<br>
+B:x=INT_MIN,y=INT_MAX,x-y溢出，dx-dy不溢出，两边不同<br>
+C:true，int类型加法在double表示下不会溢出，满足交换律<br>
+D:x=INT_MAX,y=INT_MAX-101,z=INT_MAX-101.double类型无法精确表示较大的整数，不同的计算顺序可能导致舍入结果不一致<br>
+E:x=0,y=1.dx/dx=NaN,dy/dy=1<br>
+* 2.90<br>
+```c++
+float fpwr2(int x) {
+  /*Result exponent and fraction */
+  unsigned exp, frac;
+  unsigned u;
+  if (x < -149) {
+    /*Too small, return 0.0*/
+    exp = 0;
+    frac = 0;
+  } else if (x < -126) {
+    /*Denormalized result*/
+    exp = 0;
+    frac = 1 << (x + 149);
+  } else if (x < 128) {
+    /*Normalized result*/
+    exp = x + 127;
+    frac = 0;
+  } else {
+    /*Too big, return +∞*/
+    exp = 255;
+    frac = 0;
+  }
+
+  /*Pack exp and frac into 32 bits*/
+  u = exp << 23 | frac;
+  return u2f(u);
+}
+```
+* 2.91<br>
+π的单精度浮点近似表示为：0x40490FDB<br>
+A:上述表示的位模式为0 100000000 10010010000111111011011，E=128-127=1,M=1.10010010000111111011011,二进制小数为M*2=11.00100100001111110110110<br>
+B:$\frac{22}{7}=3\frac{1}{7}$,根据2.83，Y=1,k=3,无穷串为001。22/7的二进制小数为11.001 001 001 ···<br>
+C：二者从第9位小数开始不同<br>
+* 2.92<br>
+```c++
+/* compute -f. If f is NaN, then return f. */
+float_bits float_negate(float_bits f) {
+  unsigned sign = f >> 31;
+  unsigned exp = f >> 23 & 0xFF;
+  unsigned frac = f & 0x7FFFFF;
+  if (exp == 0xFF && frac != 0) {
+    return f;
+  }
+  return ((-sign) << 31) | (exp << 23) | frac;
+}
+```
+* 2.93<br>
+```c++
+/* compute |f|. If f is NaN, then return f. */
+float_bits float_absval(float_bits f) {
+  unsigned sign = f >> 31;
+  unsigned exp = f >> 23 & 0xFF;
+  unsigned frac = f & 0x7FFFFF;
+  if (exp == 0xFF && frac != 0) {
+    return f;
+  }
+  return (0 << 31) | (exp << 23) | frac;
+}
+```
+* 2.94<br>
+```c++
+/* compute 2*f. If f is NaN, then return f. */
+float_bits float_twice(float_bits f) {
+  unsigned sign = f >> 31;
+  unsigned exp = f >> 23 & 0xFF;
+  unsigned frac = f & 0x7FFFFF;
+  // f is NaN or Inf
+  if (exp == 0xFF) {
+    return f;
+  }
+  if (exp == 0x00){
+    frac <<= 1;
+  }else if(exp == 0xFF - 1){
+    exp = 0xFF;
+    frac = 0;
+  }else{
+    exp += 1;
+  }
+  return (sign << 31) | (exp << 23) | frac;
+}
+```
+* 2.95<br>
+参考[CSAPP-3e-Solutions](https://dreamanddead.github.io/CSAPP-3e-Solutions/chapter2/2.95/)
+```c++
+/* compute 0.5*f. If f is NaN, then return f. */
+float_bits float_half(float_bits f) {
+  unsigned sign = f >> 31;
+  unsigned exp = f >> 23 & 0xFF;
+  unsigned frac = f & 0x7FFFFF;
+  unsigned rest = f & 0x7FFFFFFF;
+  if (exp == 0xFF) {
+    return f;
+  }
+  /* Round to even, think about last 2 bits of frac
+    00 => 0
+    01 => 0
+    10 => 1
+    11 => 10 (round to even) need >>1 and plus 1*/
+  int addition = (frac & 0x11) == 0x11;
+  if (exp != 0x00) {
+    exp -= 1;
+  } else {
+    frac >>= 1;
+  }
+
+  if (exp == 0) {
+    frac >>= 1;
+    frac += addition;
+  } else if (exp == 1) {
+    /* Normalized to denormalized */
+    rest >>= 1;
+    rest += addition;
+    exp = rest >> 23 & 0xFF;
+    frac = rest & 0x7FFFFF;
+  } else {
+    exp -= 1;
+  }
+  return (0 << 31) | (exp << 23) | frac;
+}
+```
+* 2.96<br>
+* 参考[CSAPP-3e-Solutions](https://dreamanddead.github.io/CSAPP-3e-Solutions/chapter2/2.96/)
+当0<=f<1, 返回0<br>
+当f>=2^31, 返回无穷大<br>
+其他情况返回(int)f
+```c++
+/* compute (int)f. If converion causes overflow or f is NaN, return 0x80000000. */
+int float_f2i(float_bits f) {
+  unsigned sig = f >> 31;
+  unsigned exp = f >> 23 & 0xFF;
+  unsigned frac = f & 0x7FFFFF;
+  unsigned bias = 0x7F;
+
+  int num;
+  unsigned E;
+  unsigned M;
+
+  // 0 <= |f| < 1
+  if (exp >= 0 && exp - bias < 0) {
+    /* number less than 1 */
+    num = 0;
+  // |f| >= 2^31 or f is ∞
+  } else if (exp - bias >= 31) {
+    num = 0x80000000;
+  // other. V = M * 2^E
+  } else {
+    E = exp - bias;
+    M = frac | 0x800000;
+    if (E > 23) {
+      num = M << (E - 23);
+    } else {
+      num = M >> (23 - E);
+    }
+  }
+  return sig ? -num : num;
+}
+```
+* 2.97<br>
+* 参考[CSAPP-3e-Solutions](https://dreamanddead.github.io/CSAPP-3e-Solutions/chapter2/2.96/)
+```c++
+size_t bits_length(unsigned i) {
+  size_t n = 0;
+  while (i) {
+    i >>= 1;
+    ++n;
+  }
+  return n;
+}
+
+/* compute (float)i */
+float_bits i2f(int i) {
+  unsigned sig = 0, exp, frac, bias = 0x7F;
+  // special value 0 and INT_MIN
+  if (i == 0) {
+    sig = 0;
+    exp = 0;
+    frac = 0;
+    return sig << 31 | exp << 23 | frac;
+  }
+  if (i == INT32_MIN) {
+    sig = 1;
+    exp = bias + 31;
+    frac = 0;
+    return sig << 31 | exp << 23 | frac;
+  }
+  // if i is negative, convert it to positive
+  if (i < 0) {
+    sig = 1;
+    i = -i;
+  }
+  // 0111->3; 010101->5
+  unsigned bits = bits_length(i);
+  // in float, 11111->1.1111*2^4, fbits = bits - 1
+  unsigned fbits = bits - 1;
+  // exp in float need add bias
+  exp = bias + fbits;
+  // get decimal part of float
+  unsigned rest = i & ((1 << fbits) - 1);
+  if (fbits <= 23) {
+    frac = rest << (23 - fbits);
+    exp = exp << 23 | frac;
+  } else {
+    unsigned offset = fbits - 23;
+    unsigned round_mid = 1 << (offset - 1);
+
+    unsigned round_part = rest & ((1 << offset) - 1);
+    frac = rest >> offset;
+    exp = exp << 23 | frac;
+
+    if (round_part > round_mid) {
+      exp += 1;
+    } else if (round_part == round_mid) {
+      // round to even
+      if ((frac & 0x1) == 1) {
+        exp += 1;
+      }
+    }
+  }
+
+  return sig << 31 | exp;
+}
+
+int main(int argc, char const *argv[]) {
+  for (int32_t i = -INT32_MIN; i < INT32_MAX; ++i) {
+    float f = i;
+    unsigned fu = reinterpret_cast<unsigned &>(f);
+    auto a = i2f(i);
+    assert(fu == a);
+  }
+}
+```
