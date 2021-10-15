@@ -571,40 +571,31 @@ float_bits i2f(int i) {
   unsigned bits = bits_length(i);
   // in float, 11111->1.1111*2^4, fbits = bits - 1
   unsigned fbits = bits - 1;
+  unsigned exp_frac;
   // exp in float need add bias
   exp = bias + fbits;
   // get decimal part of float
   unsigned rest = i & ((1 << fbits) - 1);
   if (fbits <= 23) {
     frac = rest << (23 - fbits);
-    exp = exp << 23 | frac;
+    exp_frac = exp << 23 | frac;
   } else {
+    // deal with round off
     unsigned offset = fbits - 23;
     unsigned round_mid = 1 << (offset - 1);
-
     unsigned round_part = rest & ((1 << offset) - 1);
     frac = rest >> offset;
-    exp = exp << 23 | frac;
-
+    exp_frac = exp << 23 | frac;
     if (round_part > round_mid) {
-      exp += 1;
+      exp_frac += 1;
     } else if (round_part == round_mid) {
       // round to even
       if ((frac & 0x1) == 1) {
-        exp += 1;
+        exp_frac += 1;
       }
     }
   }
 
-  return sig << 31 | exp;
-}
-
-int main(int argc, char const *argv[]) {
-  for (int32_t i = -INT32_MIN; i < INT32_MAX; ++i) {
-    float f = i;
-    unsigned fu = reinterpret_cast<unsigned &>(f);
-    auto a = i2f(i);
-    assert(fu == a);
-  }
+  return sig << 31 | exp_frac;
 }
 ```
