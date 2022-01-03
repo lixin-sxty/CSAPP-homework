@@ -175,5 +175,68 @@ void proc(union ele *up) {
   up->e2.x = *(up->e2.next->e1.p) - up->e2.next->e1.y;
 }
 ```
-
-
+* 3.71<br>
+```c++
+#include <stdio.h>
+#define N 1024
+void good_echo() {
+  char buffer[N];
+  while (true) {
+    char* ret = fgets(buffer, N, stdin);
+    if (!ret) break;
+    printf("%s", ret);
+  }
+  return;
+}
+```
+* 3.72<br>
+A: s2=s1-(8×n+30)&FFFFFFF0<br>
+B: p=(s2+15)&FFFFFFF0<br>
+C: 当n为偶数, e1+e2=16, s1地址满足s1%16=15时, e2最大为15, 此时e1=1<br>
+   当n为奇数, e1+e2=24, s1地址满足s1%16=0时, e2最小为0, 此时e1=24<br>
+D: 按照16对齐<br>
+* 3.73<br>
+参考https://dreamanddead.github.io/CSAPP-3e-Solutions/chapter3/3.73/
+```c++
+range_t find_range(float x) {
+  __asm__(
+      "vxorps %xmm1, %xmm1, %xmm1\n\t"
+      "vucomiss %xmm1, %xmm0\n\t"
+      "jp .P\n\t"
+      "ja .A\n\t"
+      "jb .B\n\t"
+      "je .E\n\t"
+      ".A:\n\t"
+      "movl $2, %eax\n\t"
+      "jmp .Done\n\t"
+      ".B:\n\t"
+      "movl $0, %eax\n\t"
+      "jmp .Done\n\t"
+      ".E:\n\t"
+      "movl $1, %eax\n\t"
+      "jmp .Done\n\t"
+      ".P:\n\t"
+      "movl $3, %eax\n\t"
+      ".Done:\n\t"
+      "ret\n\t");
+}
+```
+* 3.74<br>
+注意cmovbl与cmovpl的顺序。当x为nan时, vucomiss会将PF，CF，ZF均置1，因此需要将cmovbl判断放在cmovpl判断之前，反之cmovpl的结果会被cmovbl覆盖
+```c++
+range_t find_range(float x) {
+  __asm__(
+      "vxorps %xmm1, %xmm1, %xmm1\n\t"
+      "movl  $1, %eax\n\t"
+      "movl  $0, %r8d\n\t"
+      "movl  $3, %r9d\n\t"
+      "movl  $2, %r10d\n\t"
+      "vucomiss %xmm1, %xmm0\n\t"
+      "cmovbl %r8d, %eax\n\t"
+      "cmovpl %r9d, %eax\n\t"
+      "cmoval %r10d, %eax\n\t");
+}
+```
+* 3.75<br>
+A: 复数参数传递时, 第一个参数的实部虚部分别通过xmm0, xmm1传递, 第二个参数的实部虚部分别通过xmm2, xmm3传递, 以此类推<br>
+B: 返回值的实部虚部分别通过xmm0, xmm1传递
