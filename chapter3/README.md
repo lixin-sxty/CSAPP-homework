@@ -1,3 +1,47 @@
+* 3.58
+```c++
+long decode2(long x, long y, long z) {
+  y -= z;
+  x *= y;
+  y <<= 63;
+  y >>= 63;
+  return y ^ x;
+}
+```
+* 3.59
+```c++
+// dest in %rdi, x in %rsi, y in %rdx
+store_prod:
+  movq  %rdx, %rax      # rax = y_l
+  cqto                  # rdx = y_h
+  movq  %rsi, %rcx      # rcx = x_l
+  sarq  $63,  %rcx      # rcx = x_h
+  imulq %rax, %rcx      # rcx = y_l * x_h
+  imulq %rsi, %rdx      # rdx = x_l * y_h
+  addq  %rdx, %rcx      # rcx = y_l * x_h + x_l * y_h
+  mulq  %rsi            # rdx, rax = dest_h, dest_l
+  addq  %rcx, %rdx      # rdx = dest_l + y_l * x_h + x_l * y_h
+  movq  %rax, (%rdi)    # (%rdi) = dest_l
+  movq  %rdx, 8(%rdi)   # (%rdi+8) = dest_h
+  ret
+```
+* 3.60<br>
+A: x->%rdi, n->%esi, result->%rax, mask->%rdx<br>
+B: result = 0, mask = 1<br>
+C: mask != 0<br>
+D: mask <<= n<br>
+E: result |= ( x & mask)<br>
+F:
+```c++
+long loop(long x, int n) {
+  long result = 0;
+  long mask;
+  for (mask = 1; mask != 0; mask << (int8_t)n) {
+    result |= (x & mask);
+  }
+  return result;
+}
+```
 * 3.61
 ```c++
 long cread_alt(long *xp) { return (!xp ? 0 : *xp); }
