@@ -1,0 +1,92 @@
+# Execution begins at address 0
+	.pos 0
+	irmovq stack, %rsp  	# Set up stack pointer
+	call main		# Execute main program
+	halt			# Terminate program
+
+# Array of elements
+	.align 8
+array:
+	.quad 0x0000000000000000
+	.quad 0x0000000000000000
+	.quad 0x0000000000000000
+	.quad 0x0000000000000000
+	.quad 0x0000000000000000
+	.quad 0x0000000000000000
+
+main:
+	irmovq array, %r8
+	# # test input: 0, 2, 3, 5, 6, -1
+	irmovq $0, %rdi
+	call switchv
+	rmmovq %rax, (%r8)
+	irmovq $2, %rdi
+	call switchv
+	rmmovq %rax, 8(%r8)
+	irmovq $3, %rdi
+	call switchv
+	rmmovq %rax, 16(%r8)
+	irmovq $5, %rdi
+	call switchv
+	rmmovq %rax, 24(%r8)
+	irmovq $6, %rdi
+	call switchv
+	rmmovq %rax, 32(%r8)
+	irmovq $-1, %rdi
+	call switchv
+	rmmovq %rax, 40(%r8)
+	ret
+
+table:
+	.quad DEF
+	.quad C0
+	.quad C1
+	.quad C2
+	.quad C3
+	.quad C4
+	.quad C5
+
+# void switchv(long idx)
+# idx in %rdi
+switchv:
+	irmovq table, %rsi
+	irmovq $0, %r9
+	irmovq $1, %r10
+	irmovq $5, %r11
+	irmovq $8, %r12
+	subq %r9, %rdi	# if less than 0, jump to default
+	jl JUMP
+	rrmovq %rdi, %rcx # if greater than 5, jump to default
+	subq %r11, %rcx
+	jg JUMP
+MUL:		# calculate address = table + (idx + 1) * 8
+	addq %r12, %rsi
+	subq %r10, %rdi
+	subq %r9, %rdi
+	jge MUL
+JUMP:
+	mrmovq (%rsi), %rdi
+	pushq %rdi
+	ret
+DEF:
+	irmovq $0xddd, %rax
+	ret
+C0:
+	irmovq $0xaaa, %rax
+	ret
+C1:
+	jmp DEF
+C2:
+	jmp C5
+C3:
+	irmovq $0xccc, %rax
+	ret
+C4:
+	jmp DEF
+C5:
+	irmovq $0xbbb, %rax
+	ret
+
+# Stack starts here and grows to lower addresses
+	.pos 0x200
+stack:

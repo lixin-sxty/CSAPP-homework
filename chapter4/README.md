@@ -67,11 +67,13 @@ Changes to memory:
 0x0040: 0x0000000000000003      0x0000000000000006
 0x0048: 0x0000000000000002      0x0000000000000007
 0x0050: 0x0000000000000001      0x0000000000000008
+
 0x01f0: 0x0000000000000000      0x0000000000000075
 0x01f8: 0x0000000000000000      0x0000000000000013
 ```
+**注意，输出结果中除了期望的内存改变外，栈顶的内存(0x1f8,0x1f0)也出现的变化，这是使用call或者pushq指令数据入栈后没有进行清零操作产生的.后续习题中也有此情况**<br>
 可以看到输入数据已经按照升序正确排序，共执行405次指令<br>
-* 4.48<br>
+* 4.48<br>s
 见文件4_48.ys.<br>
 使用yas编译后使用yis执行结果如下：
 ```bash
@@ -95,6 +97,7 @@ Changes to memory:
 0x0040: 0x0000000000000003      0x0000000000000006
 0x0048: 0x0000000000000002      0x0000000000000007
 0x0050: 0x0000000000000001      0x0000000000000008
+
 0x01f0: 0x0000000000000000      0x0000000000000075
 0x01f8: 0x0000000000000000      0x0000000000000013
 ```
@@ -139,9 +142,142 @@ Changes to memory:
 0x0040: 0x0000000000000003      0x0000000000000006
 0x0048: 0x0000000000000002      0x0000000000000007
 0x0050: 0x0000000000000001      0x0000000000000008
+
 0x01f0: 0x0000000000000000      0x0000000000000075
 0x01f8: 0x0000000000000000      0x0000000000000013
 ```
 可以看到输入数据已经按照升序正确排序，共执行517次指令<br>
 * 4.50<br>
+见文件4_50.ys.<br>
+使用yas编译后使用yis执行结果如下：
+```bash
+Stopped in 167 steps at PC = 0x13.  Status 'HLT', CC Z=0 S=1 O=0
+Changes to registers:
+%rax:   0x0000000000000000      0x0000000000000ddd
+%rcx:   0x0000000000000000      0x0000000000000001
+%rsp:   0x0000000000000000      0x0000000000000200
+%rsi:   0x0000000000000000      0x0000000000000101
+%rdi:   0x0000000000000000      0x000000000000019f
+%r8:    0x0000000000000000      0x0000000000000018
+%r10:   0x0000000000000000      0x0000000000000001
+%r11:   0x0000000000000000      0x0000000000000005
+%r12:   0x0000000000000000      0x0000000000000008
 
+Changes to memory:
+0x0018: 0x0000000000000000      0x0000000000000aaa
+0x0020: 0x0000000000000000      0x0000000000000bbb
+0x0028: 0x0000000000000000      0x0000000000000ccc
+0x0030: 0x0000000000000000      0x0000000000000bbb
+0x0038: 0x0000000000000000      0x0000000000000ddd
+0x0040: 0x0000000000000000      0x0000000000000ddd
+
+0x01e8: 0x0000000000000000      0x000000000000019f
+0x01f0: 0x0000000000000000      0x00000000000000f6
+0x01f8: 0x0000000000000000      0x0000000000000013
+```
+* 4.51<br>
+
+| 阶段   | iaddq                                                                          |
+| ------ | ------------------------------------------------------------------------------ |
+| 取指   | icode:ifun <- M1[PC]<br>rA:rB <- M1[PC+1]<br>valC <- M8[PC+2]<br>valP <- PC+10 |
+| 译码   | valB <- R[rB]                                                                  |
+| 执行   | valE <- valC + valB<br>Set CC                                                  |
+| 访存   |                                                                                |
+| 写回   | R[rB] <- valE                                                                  |
+| 更新PC | PC <- valP                                                                     |
+* 4.52<br>
+```bash
+$ diff -u seq-full.hcl.backup seq-full.hcl
+--- seq-full.hcl.backup 2022-02-20 19:39:06.776067375 +0800
++++ seq-full.hcl        2022-02-20 19:43:31.335671601 +0800
+@@ -104,18 +104,18 @@
+        1: imem_ifun;           # Default: get from instruction memory
+ ];
+
+-bool instr_valid = icode in
++bool instr_valid = icode in
+        { INOP, IHALT, IRRMOVQ, IIRMOVQ, IRMMOVQ, IMRMOVQ,
+-              IOPQ, IJXX, ICALL, IRET, IPUSHQ, IPOPQ };
++              IOPQ, IJXX, ICALL, IRET, IPUSHQ, IPOPQ, IIADDQ };
+
+ # Does fetched instruction require a regid byte?
+ bool need_regids =
+-       icode in { IRRMOVQ, IOPQ, IPUSHQ, IPOPQ,
+-                    IIRMOVQ, IRMMOVQ, IMRMOVQ };
++       icode in { IRRMOVQ, IOPQ, IPUSHQ, IPOPQ,
++                    IIRMOVQ, IRMMOVQ, IMRMOVQ, IIADDQ };
+
+ # Does fetched instruction require a constant word?
+ bool need_valC =
+-       icode in { IIRMOVQ, IRMMOVQ, IMRMOVQ, IJXX, ICALL };
++       icode in { IIRMOVQ, IRMMOVQ, IMRMOVQ, IJXX, ICALL, IIADDQ };
+
+ ################ Decode Stage    ###################################
+
+@@ -128,7 +128,7 @@
+
+ ## What register should be used as the B source?
+ word srcB = [
+-       icode in { IOPQ, IRMMOVQ, IMRMOVQ  } : rB;
++       icode in { IOPQ, IRMMOVQ, IMRMOVQ, IIADDQ  } : rB;
+        icode in { IPUSHQ, IPOPQ, ICALL, IRET } : RRSP;
+        1 : RNONE;  # Don't need register
+ ];
+@@ -136,7 +136,7 @@
+ ## What register should be used as the E destination?
+ word dstE = [
+        icode in { IRRMOVQ } && Cnd : rB;
+-       icode in { IIRMOVQ, IOPQ} : rB;
++       icode in { IIRMOVQ, IOPQ, IIADDQ } : rB;
+        icode in { IPUSHQ, IPOPQ, ICALL, IRET } : RRSP;
+        1 : RNONE;  # Don't write any register
+ ];
+@@ -152,7 +152,7 @@
+ ## Select input A to ALU
+ word aluA = [
+        icode in { IRRMOVQ, IOPQ } : valA;
+-       icode in { IIRMOVQ, IRMMOVQ, IMRMOVQ } : valC;
++       icode in { IIRMOVQ, IRMMOVQ, IMRMOVQ, IIADDQ } : valC;
+        icode in { ICALL, IPUSHQ } : -8;
+        icode in { IRET, IPOPQ } : 8;
+        # Other instructions don't need ALU
+@@ -160,8 +160,8 @@
+
+ ## Select input B to ALU
+ word aluB = [
+-       icode in { IRMMOVQ, IMRMOVQ, IOPQ, ICALL,
+-                     IPUSHQ, IRET, IPOPQ } : valB;
++       icode in { IRMMOVQ, IMRMOVQ, IOPQ, ICALL,
++                     IPUSHQ, IRET, IPOPQ, IIADDQ } : valB;
+        icode in { IRRMOVQ, IIRMOVQ } : 0;
+        # Other instructions don't need ALU
+ ];
+@@ -173,7 +173,7 @@
+ ];
+
+ ## Should the condition codes be updated?
+-bool set_cc = icode in { IOPQ };
++bool set_cc = icode in { IOPQ, IIADDQ };
+
+ ################ Memory Stage    ###################################
+```
+编译与测试
+```bash
+# 编译
+cd seq && make clean && make ssim VERSION=full
+# 测试
+cd ptest && make SIM=../seq/ssim TFLAGS=-i
+# 测试结果
+./optest.pl -s ../seq/ssim -i
+Simulating with ../seq/ssim
+  All 58 ISA Checks Succeed
+./jtest.pl -s ../seq/ssim -i
+Simulating with ../seq/ssim
+  All 96 ISA Checks Succeed
+./ctest.pl -s ../seq/ssim -i
+Simulating with ../seq/ssim
+  All 22 ISA Checks Succeed
+./htest.pl -s ../seq/ssim -i
+Simulating with ../seq/ssim
+  All 756 ISA Checks Succeed
+```
