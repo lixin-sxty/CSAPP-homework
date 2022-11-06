@@ -5,14 +5,14 @@
   $$S\propto -x^2+x$$
   此二次函数有极大值，极值点在x=1/2处。所以x取0.5时磁盘容量最大
   * 6.23<br>
-  $$T_{access}=T_{avg seek}+T_{avg rotation}+T_{avg transfer}=\\4+1/2\times60/15000\times1000+60/15000\times1/800\times1000=6.005ms$$
+  $$T_{access}=T_{avg seek}+T_{avg rotation}+T_{avg transfer}=4+1/2\times60/15000\times1000+60/15000\times1/800\times1000=6.005ms$$
   参考6.1.2节示例
 * 6.24<br>
   A:
-  $$T_{avg seek}=4ms\\
-  T_{avg rotation}=1/2\times60/15000\times1000=2ms\\
-  T_{avg transfer}=2000/0.5/1000\times60/15000\times1000=16ms\\
-  T_{access}=T_{avg seek}+T_{avg rotation}+T_{avg transfer}=22ms$$
+  $$T_{avg seek}=4ms$$
+  $$T_{avg rotation}=1/2\times60/15000\times1000=2ms$$
+  $$T_{avg transfer}=2000/0.5/1000\times60/15000\times1000=16ms$$
+  $$T_{access}=T_{avg seek}+T_{avg rotation}+T_{avg transfer}=22ms$$
   B:
   $$T_{access}=2000/0.5*(T_{avg seek}+T_{avg rotation})=24s$$
   参考习题6.4
