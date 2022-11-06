@@ -2,14 +2,10 @@
   令每个磁道宽度为A，磁道上每个扇区长度为B，每个扇区容量为C，则磁盘总容量为
   $$S=\frac{(1-x)r}{A}\times\frac{2\pi xr}{B}\times C$$
   其中第一项为磁道数，第二项为每个磁道扇区数。已知A,B,C,r,π均为常数，故
-  $$
-  S\propto -x^2+x
-  $$
+  $$S\propto -x^2+x$$
   此二次函数有极大值，极值点在x=1/2处。所以x取0.5时磁盘容量最大
   * 6.23<br>
-  $$
-  T_{access}=T_{avg seek}+T_{avg rotation}+T_{avg transfer}=\\4+1/2\times60/15000\times1000+60/15000\times1/800\times1000=6.005ms
-  $$
+  $$T_{access}=T_{avg seek}+T_{avg rotation}+T_{avg transfer}=\\4+1/2\times60/15000\times1000+60/15000\times1/800\times1000=6.005ms$$
   参考6.1.2节示例
 * 6.24<br>
   A:
@@ -18,9 +14,7 @@
   T_{avg transfer}=2000/0.5/1000\times60/15000\times1000=16ms\\
   T_{access}=T_{avg seek}+T_{avg rotation}+T_{avg transfer}=22ms$$
   B:
-  $$
-  T_{access}=2000/0.5*(T_{avg seek}+T_{avg rotation})=24s
-  $$
+  $$T_{access}=2000/0.5*(T_{avg seek}+T_{avg rotation})=24s$$
   参考习题6.4
 * 6.25<br>
   | 高速缓存 | m   | C    | B   | E   | S   | t   | s   | b   |
@@ -40,8 +34,8 @@
   | 4        | 32  | 1024 | 32  | 2   | 16  | 23  | 4   | 5   |
 * 6.27<br>
   A:组1包含两行<br>
-  对于标记为45的行命中的地址中t=45=0b01000101, s=001, b=00~11，对应的16位地址为0x08A4~0x08A7<br>
-  对于标记为38的行命中的地址中t=38=0b00111000, s=001, b=00~11，对应的16位地址为0x0704~0x0707<br>
+  对于标记为45的行命中的地址中t=45=0b01000101, s=001, b=00-11，对应的16位地址为0x08A4-0x08A7<br>
+  对于标记为38的行命中的地址中t=38=0b00111000, s=001, b=00-11，对应的16位地址为0x0704-0x0707<br>
   B:思路同上，0x1238~0x123B
 * 6.28<br>
   思路同6.27<br>
