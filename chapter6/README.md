@@ -177,3 +177,75 @@
   | 64k   | 34366 | 28880 | 27450 | 24152 | 19742 | 17341 | 14014 | 13751 | 13703 | 14024 | 13686 | 14022 | 14117 | 15715 | 27227 |
   | 32k   | 39600 | 37494 | 37359 | 36769 | 36179 | 36043 | 36057 | 34181 | 35118 | 35498 | 39670 | 38485 | 35873 | 34320 | 37529 |
   | 16k   | 39983 | 38936 | 38031 | 36940 | 34721 | 36367 | 34148 | 35192 | 35954 | 36874 | 34048 | 34469 | 32381 | 33640 | 34848 |
+* 6.45<br>
+  linux系统下使用命令```lscpu```可以查看cpu的整体参数，包括cache。在测试机器上结果如下
+  ```shell
+  $ lscpu
+  Architecture:          x86_64
+  CPU op-mode(s):        32-bit, 64-bit
+  Byte Order:            Little Endian
+  CPU(s):                6
+  On-line CPU(s) list:   0-5
+  Thread(s) per core:    1
+  Core(s) per socket:    6
+  Socket(s):             1
+  Vendor ID:             GenuineIntel
+  CPU family:            6
+  Model:                 158
+  Model name:            Intel(R) Core(TM) i5-9400F CPU @ 2.90GHz
+  Stepping:              10
+  CPU MHz:               2904.008
+  BogoMIPS:              5808.01
+  Hypervisor vendor:     Microsoft
+  Virtualization type:   full
+  L1d cache:             32K
+  L1i cache:             32K
+  L2 cache:              256K
+  L3 cache:              9216K
+  ```
+  可以看到L1-cache为32K，L2-cache为256K，L3-cache为9216K.
+  其中L1-cache又分为L1d(Data cache)与L1I(instruction cache)<br>
+  使用命令```cat /sys/devices/system/cpu/cpu0/cache/index*```可以查看cache的具体参数，主要参数含义为：<br>
+  level - cache等级<br>
+  type - cache类型(Data,Instruction,Unified)<br>
+  size - cache大小，即C<br>
+  number_of_sets - 组数，即S<br>
+  ways_of_associativity - 每组相联路数，即E<br>
+  coherency_line_size - block大小，即B<br>
+  在测试机器上L1d cache参数如下
+  ```shell
+  $ cat /sys/devices/system/cpu/cpu0/cache/index0/level
+  1
+  $ cat /sys/devices/system/cpu/cpu0/cache/index0/type
+  Data
+  $ cat /sys/devices/system/cpu/cpu0/cache/index0/size
+  32K
+  $ cat /sys/devices/system/cpu/cpu0/cache/index0/number_of_sets
+  64
+  $ cat /sys/devices/system/cpu/cpu0/cache/index0/ways_of_associativity
+  8
+  $ cat /sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size
+  64
+  ```
+  基于cache参数进行优化<br>
+  (1)参考6.6.2节的blocking优化方法，对于较大的矩阵通过分块处理使其能被cache容纳，提高缓存命中率<br>
+  (2)每个block内使用循环展开进一步提升性能<br>
+  (3)在测试机上当block大小=128，使用 $8\times 1$ 循环展开时性能最好<br>
+  具体代码见test_6.45.c。在测试机器上对于N=15000的矩阵测试结果如下：
+  ```shell
+  $ ./test
+  transpose:
+  Run 10, avg time =1744.366000 ms
+  perf_transpose_128_8
+  Run 10, avg time =353.025800 ms
+  ```
+* 6.46<br>
+  与6.45思路类似，注意到结果矩阵是对称矩阵，可以只遍历矩阵的一半以提高性能<br>
+  在测试机上当block大小=256，使用 $16\times 1$ 循环展开时性能最好<br>
+  具体代码见test_6.46.c。在测试机器上对于N=15000的矩阵测试结果如下：
+  ```shell
+  $ ./test
+  convert:
+  Run 10, avg time =1992.027800 ms
+  perf_convert_256_16
+  Run 10, avg time =731.047700 ms
