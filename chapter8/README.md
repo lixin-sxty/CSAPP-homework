@@ -193,3 +193,62 @@
   表明abort被信号15终止
 
   Note：在win10 WSL2虚拟环境下执行以上程序，子进程被kill之后会马上启动一个相同命令的进程，进程号+1，尚不清楚原因
+* 8.23<br>
+  信号不会排队，处理第1个信号时，第2个信号会被加入pedding序列，之后收到的其他信号会被直接丢弃。与8.5.5中正确的信号处理一节示例类似
+* 8.24<br>
+  ```c++
+  #include "csapp.h"
+
+  int main() {
+    int status, i;
+    pid_t pid;
+    /* Parent creates N children */
+    for (i = 0; i < N; i++)
+      if ((pid = fork()) == 0) /* Child */ {
+        char* s = 0; /* Address 0 is protected */
+        *s = 's';    /* Segmentation fault */
+      }
+
+    /* Parent reaps N children in no particular order */
+    while ((pid = waitpid(-1, &status, 0)) > 0) {
+      if (WIFEXITED(status))
+        printf("child %d terminated normally with exit status=%d\n", pid,
+              WEXITSTATUS(status));
+      else {
+        char* info;
+        int sig = WTERMSIG(status);
+        sprintf(info, "child %d terminated by signal %d", pid, sig);
+        psignal(sig, info);
+      }
+    }
+
+    /* The only normal termination is if there are no more children */
+    if (errno != ECHILD) unix_error("waitpid error");
+
+    exit(0);
+  }
+  ```
+* 8.25<br>
+  ```c++
+  #include "csapp.h"
+  jmp_buf env;
+
+  void handle(int sig) { longjmp(env, 1); }
+
+  char *tfgets(char *s, int size, FILE *stream) {
+    signal(SIGALRM, handle);
+    alarm(5);
+    return setjmp(env) == 0 ? fgets(s, size, stream) : NULL;
+  }
+
+  int main() {
+    char *s;
+    char *input = tfgets(s, 10, stdin);
+    if (input == NULL) {
+      printf("Time out.\n");
+    } else {
+      printf("Input: %s", input);
+    }
+    return 0;
+  }
+  ```
