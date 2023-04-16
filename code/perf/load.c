@@ -1,10 +1,10 @@
+#include "load.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <sys/signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <sys/signal.h>
-#include "load.h"
+#include <unistd.h>
 
 /* Max. load processes */
 #define PLIMIT 100
@@ -12,13 +12,11 @@
 static pid_t child_id[PLIMIT];
 static int child_count = 0;
 
-
 static int sink;
 
 /* Run cpu-intensive code */
 
-static void cpu_run()
-{
+static void cpu_run() {
   int i = 1;
   sink = 1;
   while (1)
@@ -27,10 +25,9 @@ static void cpu_run()
 
 /* Run cache intensive code */
 /* L1 cache is 16KB = 4K integers, with 32B line size */
-#define CSIZE (1<<12)
+#define CSIZE (1 << 12)
 #define CSTRIDE 8
-static void cache_run()
-{
+static void cache_run() {
   int i;
   int *data = calloc(CSIZE, sizeof(int));
   while (1) {
@@ -46,10 +43,9 @@ static void cache_run()
 
 /* Run memory intensive code */
 /* L2 cache is 512KB = 128K integers, with 32B line size */
-#define MSIZE (1<<18)
+#define MSIZE (1 << 18)
 #define MSTRIDE 8
-static void mem_run()
-{
+static void mem_run() {
   int i;
   int *data = calloc(MSIZE, sizeof(int));
   while (1) {
@@ -69,9 +65,8 @@ void add_load(int count, load_t load_type) {
     return;
   for (i = 0; i < count; i++) {
     pid_t id;
-    if (i+1 == PLIMIT) {
-      fprintf(stderr, "Can't create more than %d child processes\n",
-	      PLIMIT);
+    if (i + 1 == PLIMIT) {
+      fprintf(stderr, "Can't create more than %d child processes\n", PLIMIT);
       exit(1);
     }
     id = fork();
@@ -80,19 +75,19 @@ void add_load(int count, load_t load_type) {
       child_id[child_count++] = id;
     } else {
       /* Child */
-      switch(load_type) {
+      switch (load_type) {
       case CPU_LOAD:
-	cpu_run();
-	break;
+        cpu_run();
+        break;
       case CACHE_LOAD:
-	cache_run();
-	break;
+        cache_run();
+        break;
       case MEM_LOAD:
-	mem_run();
-	break;
+        mem_run();
+        break;
       default:
-	fprintf(stderr, "Unknown Load type %d\n", load_type);
-	exit(1);
+        fprintf(stderr, "Unknown Load type %d\n", load_type);
+        exit(1);
       }
       exit(0);
     }
@@ -109,4 +104,3 @@ void kill_loads() {
     wait(&status);
   }
 }
-

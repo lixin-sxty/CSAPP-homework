@@ -1,14 +1,14 @@
 /* $begin 430-union3-decl-c */
 typedef union {
-    struct {
-	long   u;
-	short  v;
-	char   w;
-    } t1;
-    struct {
-	int a[2];
-	char  *p;
-    } t2;
+  struct {
+    long u;
+    short v;
+    char w;
+  } t1;
+  struct {
+    int a[2];
+    char *p;
+  } t2;
 } u_type;
 /* $end 430-union3-decl-c */
 
@@ -20,7 +20,8 @@ void get(u_type *up, TYPE *dest) {
 /* $end 430-union3-fun-c */
 #endif
 
-#define GETTER(name,type,expr) void name(u_type *up,type *dest) { *dest = expr; }
+#define GETTER(name, type, expr)                                               \
+  void name(u_type *up, type *dest) { *dest = expr; }
 
 GETTER(get_u, long, up->t1.u)
 

@@ -3,9 +3,9 @@
 /* trigger delivery of SIGSEGV signal (Linux "Segmentation fault" message) */
 int main() {
 
-    int *a = 0;
-    int b = *a;
+  int *a = 0;
+  int b = *a;
 
-    printf("b=%d\n", b);
-    exit(0);
+  printf("b=%d\n", b);
+  exit(0);
 }

@@ -3,29 +3,27 @@
 
 int counter = 0;
 
-void handler(int sig) 
-{
-    counter++;
-    sleep(1); /* Do some work in the handler */
-    return;
+void handler(int sig) {
+  counter++;
+  sleep(1); /* Do some work in the handler */
+  return;
 }
 
-int main() 
-{
-    int i;
+int main() {
+  int i;
 
-    Signal(SIGUSR2, handler);
+  Signal(SIGUSR2, handler);
 
-    if (Fork() == 0) {  /* Child */
-	for (i = 0; i < 5; i++) {
-	    Kill(getppid(), SIGUSR2);
-	    printf("sent SIGUSR2 to parent\n");
-	}
-	exit(0);
+  if (Fork() == 0) { /* Child */
+    for (i = 0; i < 5; i++) {
+      Kill(getppid(), SIGUSR2);
+      printf("sent SIGUSR2 to parent\n");
     }
-
-    Wait(NULL);
-    printf("counter=%d\n", counter); 
     exit(0);
+  }
+
+  Wait(NULL);
+  printf("counter=%d\n", counter);
+  exit(0);
 }
 /* $end counterprob */

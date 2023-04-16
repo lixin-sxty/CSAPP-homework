@@ -7,39 +7,39 @@ volatile int val = 0;
 
 /* Induce load on processor to have it set clock rate to maximum */
 /* How many steps to run? */
-#define STEP_CNT (1<<30)
+#define STEP_CNT (1 << 30)
 
 void burn_cpu() {
-    int i;
-    val = 0;
-    incr = random() & 0x7;
-    for (i = 0; i < STEP_CNT; i++)
-	val *= incr;
+  int i;
+  val = 0;
+  incr = random() & 0x7;
+  for (i = 0; i < STEP_CNT; i++)
+    val *= incr;
 }
 
 /* Get megahertz from /etc/proc */
 #define MAXBUF 512
 
 double get_mhz() {
-    static char buf[MAXBUF];
-    double cpu_mhz = 0.0;
-    FILE *fp = fopen("/proc/cpuinfo", "r");
+  static char buf[MAXBUF];
+  double cpu_mhz = 0.0;
+  FILE *fp = fopen("/proc/cpuinfo", "r");
 
-    if (!fp) {
-	fprintf(stderr, "Can't open /proc/cpuinfo to get clock information\n");
-	return cpu_mhz;
-    }
-    while (fgets(buf, MAXBUF, fp)) {
-	if (strstr(buf, "cpu MHz")) {
-	    sscanf(buf, "cpu MHz\t: %lf", &cpu_mhz);
-	    break;
-	}
-    }
-    fclose(fp);
-    if (cpu_mhz == 0.0) {
-	fprintf(stderr, "Can't open /proc/cpuinfo to get clock information\n");
-    }
+  if (!fp) {
+    fprintf(stderr, "Can't open /proc/cpuinfo to get clock information\n");
     return cpu_mhz;
+  }
+  while (fgets(buf, MAXBUF, fp)) {
+    if (strstr(buf, "cpu MHz")) {
+      sscanf(buf, "cpu MHz\t: %lf", &cpu_mhz);
+      break;
+    }
+  }
+  fclose(fp);
+  if (cpu_mhz == 0.0) {
+    fprintf(stderr, "Can't open /proc/cpuinfo to get clock information\n");
+  }
+  return cpu_mhz;
 }
 
 struct timespec last_time;

@@ -11,4 +11,3 @@ double mhz(int verbose);
 
 /* Determine clock rate of processor, having more control over accuracy */
 double mhz_full(int verbose, int sleeptime);
-

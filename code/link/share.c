@@ -1,7 +1,3 @@
-int myglobal=128;
+int myglobal = 128;
 
-int func()
-{
-    return myglobal;
-}
-
+int func() { return myglobal; }

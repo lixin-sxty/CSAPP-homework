@@ -6,10 +6,10 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Usage: %s x n\n", argv[0]);
     exit(0);
   } else {
-    long x = (int) strtoul(argv[1], NULL, 0);
-    int k = (int) strtoul(argv[2], NULL, 0);
+    long x = (int)strtoul(argv[1], NULL, 0);
+    int k = (int)strtoul(argv[2], NULL, 0);
     long arval = (x >> k);
-    unsigned long lrval = (long unsigned) x >> k;
+    unsigned long lrval = (long unsigned)x >> k;
     long lval = (x << k);
     printf("x = 0x%lx, k = %d:\n", x, k);
     printf("\tleft:\t0x%lx\n", lval);

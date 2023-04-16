@@ -3,8 +3,8 @@
 
 /* $begin 470-scheck-c */
 int main() {
-    long local;
-    printf("local at %p\n", &local);
-    return 0;
+  long local;
+  printf("local at %p\n", &local);
+  return 0;
 }
 /* $end 470-scheck-c */

@@ -12,11 +12,10 @@ long rfun(unsigned long x) {
 
 /* $begin 340-recurse-c */
 long rfun(unsigned long x) {
-    if (x == 0)
-	return 0;
-    unsigned long nx = x>>2;
-    long rv = rfun(nx);
-    return x + rv;
+  if (x == 0)
+    return 0;
+  unsigned long nx = x >> 2;
+  long rv = rfun(nx);
+  return x + rv;
 }
 /* $end 340-recurse-c */
-

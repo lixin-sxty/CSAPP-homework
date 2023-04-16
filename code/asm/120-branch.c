@@ -1,12 +1,8 @@
-long loop(long x)
-{
-    while (x > 0) {
-	x = x >> 1;
-    }
-    return x;
+long loop(long x) {
+  while (x > 0) {
+    x = x >> 1;
+  }
+  return x;
 }
 
-int main()
-{
-    return loop(-2);
-}
+int main() { return loop(-2); }

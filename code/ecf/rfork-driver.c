@@ -3,33 +3,32 @@
 
 #define ITERS 10
 
-int main()
-{
-    pid_t pid;
-    int i;
+int main() {
+  pid_t pid;
+  int i;
 
-    for (i = 0; i < ITERS; i++) {
-	printf("Test %d\n", i);
-	fflush(stdout);
-	
-	/* Child */
-	if (Fork() == 0) {
-	    printf("C%d\n", i);
-	    fflush(stdout);
-	    exit(0);
-	}
+  for (i = 0; i < ITERS; i++) {
+    printf("Test %d\n", i);
+    fflush(stdout);
 
-	/* Parent */
-	else { 
-	    printf("P%d\n", i);
-	    fflush(stdout);
-	}
-	fflush(stdout);
-	wait();
-	fflush(stdout);
+    /* Child */
+    if (Fork() == 0) {
+      printf("C%d\n", i);
+      fflush(stdout);
+      exit(0);
     }
 
-    printf("\n");
+    /* Parent */
+    else {
+      printf("P%d\n", i);
+      fflush(stdout);
+    }
     fflush(stdout);
-    exit(0);
+    wait();
+    fflush(stdout);
+  }
+
+  printf("\n");
+  fflush(stdout);
+  exit(0);
 }

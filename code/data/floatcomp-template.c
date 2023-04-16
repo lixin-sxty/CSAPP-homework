@@ -1,13 +1,13 @@
 unsigned f2u(float x);
 
 /* $begin floatge-template */
-int float_ge(float x, float y) { 
-    unsigned ux = f2u(x); 
-    unsigned uy = f2u(y); 
+int float_ge(float x, float y) {
+  unsigned ux = f2u(x);
+  unsigned uy = f2u(y);
 
-    /* Get the sign bits */ 
-    unsigned sx = ux >> 31; 
-    unsigned sy = uy >> 31; 
+  /* Get the sign bits */
+  unsigned sx = ux >> 31;
+  unsigned sy = uy >> 31;
 
 /* $end floatge-template */
 #if 0
@@ -17,20 +17,20 @@ int float_ge(float x, float y) {
 /* $end floatge-template */
 #endif
 
-    return sx+sy; /* just to keep gcc happy */
+  return sx + sy; /* just to keep gcc happy */
 
-/* $begin floatge-template */
-} 
+  /* $begin floatge-template */
+}
 /* $end floatge-template */
 
 /* $begin floatle-template */
-int float_le(float x, float y) { 
-    unsigned ux = f2u(x); 
-    unsigned uy = f2u(y); 
+int float_le(float x, float y) {
+  unsigned ux = f2u(x);
+  unsigned uy = f2u(y);
 
-    /* Get the sign bits */ 
-    unsigned sx = ux >> 31; 
-    unsigned sy = uy >> 31; 
+  /* Get the sign bits */
+  unsigned sx = ux >> 31;
+  unsigned sy = uy >> 31;
 
 /* $end floatle-template */
 #if 0
@@ -40,9 +40,8 @@ int float_le(float x, float y) {
 /* $end floatle-template */
 #endif
 
-    return sx+sy; /* just to keep gcc happy */
+  return sx + sy; /* just to keep gcc happy */
 
-/* $begin floatle-template */
-} 
+  /* $begin floatle-template */
+}
 /* $end floatle-template */
-
